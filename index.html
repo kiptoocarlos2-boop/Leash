@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Leash</title>
+<style>
+:root{--bg:#E8ECEF;--card:#F7F9FA;--text:#1A2430;--muted:#56616E;--rule:#C3CCD5;--accent:#C23E14;--ok:#23704D;--warn:#8A5A00;--side:#14213A;--sideText:#D9E0E8;--btn:#14213A;--btnText:#E8ECEF;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0E131A;--card:#161E28;--text:#E4E9EE;--muted:#97A3B0;--rule:#2A3644;--accent:#FF7A4D;--ok:#5FBF8F;--warn:#E0B04F;--side:#0A0F15;--sideText:#C5CED8;--btn:#E4E9EE;--btnText:#0E131A;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#0E131A;--card:#161E28;--text:#E4E9EE;--muted:#97A3B0;--rule:#2A3644;--accent:#FF7A4D;--ok:#5FBF8F;--warn:#E0B04F;--side:#0A0F15;--sideText:#C5CED8;--btn:#E4E9EE;--btnText:#0E131A;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+h1,h2,h3{font-family:Georgia,"Iowan Old Style",serif;font-weight:600;margin:0;letter-spacing:-.01em}
+h1{font-size:30px}
+h2{font-size:20px;margin:0 0 10px}
+button{font:inherit;cursor:pointer;min-height:40px;padding:8px 14px;border-radius:4px;border:1px solid var(--text);background:transparent;color:var(--text)}
+button.solid{background:var(--btn);color:var(--btnText);border-color:var(--btn)}
+button.danger{color:var(--accent);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+input,select{font:inherit;min-height:40px;padding:8px 10px;border:1px solid var(--rule);border-radius:4px;background:var(--card);color:var(--text);width:100%}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:18px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{justify-content:space-between}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.kv{font:500 28px/1.1 Georgia,serif;margin-top:6px;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+.s-auto,.s-approved{color:var(--ok)}
+.s-pending{color:var(--warn)}
+.s-denied,.s-blocked,.s-expired{color:var(--accent)}
+.bar{height:4px;background:var(--rule);border-radius:2px;overflow:hidden;margin-top:12px}
+.bar>i{display:block;height:100%;background:var(--text)}
+.list>div{padding:14px 0;border-bottom:1px solid var(--rule)}
+.list>div:last-child{border-bottom:0}
+.pendingCard{border-left:4px solid var(--accent)}
+.amt{font:500 36px/1 Georgia,serif;font-variant-numeric:tabular-nums}
+.field{display:grid;gap:6px;margin-bottom:14px}
+.field label{font-size:13px;color:var(--muted)}
+.err{color:var(--accent);font-size:14px;margin:0 0 12px}
+.shell{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+.side{background:var(--side);color:var(--sideText);padding:22px 14px;display:flex;flex-direction:column;gap:4px}
+.side button{border:0;background:transparent;color:var(--sideText);text-align:left;width:100%;display:flex;justify-content:space-between}
+.side button.on{background:rgba(255,255,255,.08)}
+.main{padding:28px clamp(16px,4vw,44px) 60px;max-width:1100px;width:100%}
+.banner{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:#14213A;color:#E4E9EE;border-radius:8px;overflow:hidden}
+.banner .copy{padding:28px;align-self:center}
+.banner .art{position:relative;min-height:200px;background:#14213A}
+.banner .art svg,.login .art svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.login .art{position:relative;overflow:hidden;min-height:340px;background:#14213A}
+.login .panel{padding:40px clamp(20px,5vw,64px);display:flex;flex-direction:column;justify-content:center;max-width:460px;width:100%;margin:0 auto}
+.tabs{display:flex;border-bottom:1px solid var(--rule);margin:22px 0}
+.tabs button{border:0;border-radius:0;border-bottom:2px solid transparent;color:var(--muted);margin-right:22px;padding:8px 0}
+.tabs button.on{color:var(--text);border-bottom-color:var(--accent)}
+.toasts{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;z-index:9}
+.toast{background:var(--btn);color:var(--btnText);padding:12px 14px;border-radius:4px;max-width:320px;font-size:14px}
+.toast.bad{background:var(--accent);color:#fff}
+@media (max-width:820px){
+  .shell{grid-template-columns:1fr}
+  .side{flex-direction:row;flex-wrap:wrap;position:sticky;top:0;z-index:5;padding:10px 12px;align-items:center}
+  .side button{width:auto;padding:6px 10px;min-height:36px}
+  .side .brand{width:100%}
+  .login{grid-template-columns:1fr}
+  .login .art{display:none}
+  .banner{grid-template-columns:1fr}
+  .banner .art{order:-1;min-height:0;height:160px}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useReducer } = React;
+
+const FIVE = 5 * 60 * 1000;
+const uid = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+const money = n => '$' + Number(n).toFixed(2);
+const when = t => new Date(t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+
+// Demo accounts. Shown on the sign-in screen so anyone can try both roles.
+const DEMO = {
+  owner: { name: 'Alex Morgan', email: 'alex@leash.demo', password: 'leash-demo' },
+  tokens: { 'bill-negotiator-01': 'lsh_demo_bn01', 'pantry-restocker-02': 'lsh_demo_pr02', 'trip-planner-03': 'lsh_demo_tp03' }
+};
+const COLORS = { 'bill-negotiator-01': '#C23E14', 'pantry-restocker-02': '#23704D', 'trip-planner-03': '#2D5BA8' };
+const LABEL = { auto: 'Auto-approved', pending: 'Waiting for you', approved: 'Approved', denied: 'Denied', blocked: 'Blocked', expired: 'Expired' };
+
+const INIT = {
+  agents: [
+    { id: 'bill-negotiator-01', name: 'Bill Negotiator', purpose: 'Pays recurring utility and phone bills', cap: 250, spent: 0, active: true },
+    { id: 'pantry-restocker-02', name: 'Pantry Restocker', purpose: 'Keeps groceries stocked', cap: 300, spent: 0, active: true },
+    { id: 'trip-planner-03', name: 'Trip Planner', purpose: 'Handles travel changes and fees', cap: 1500, spent: 0, active: true }
+  ],
+  threshold: 50,
+  trusted: ['City Power & Light', 'Verizon', 'Whole Foods', 'Netflix'],
+  requests: [],
+  toasts: []
+};
+
+const SCENARIOS = [
+  { agent: 'bill-negotiator-01', payee: 'City Power & Light', amount: 84.2, reason: 'Electric bill due Nov 20' },
+  { agent: 'pantry-restocker-02', payee: 'Whole Foods', amount: 36.1, reason: 'Oat milk and eggs running low' },
+  { agent: 'trip-planner-03', payee: 'Delta Air Lines', amount: 412, reason: 'Change fee to move the Denver flight' },
+  { agent: 'pantry-restocker-02', payee: 'FreshBox Subscriptions', amount: 19.99, reason: 'Monthly box renewal' },
+  { agent: 'bill-negotiator-01', payee: 'Verizon', amount: 58, reason: 'Phone bill due in 3 days' },
+  { agent: 'trip-planner-03', payee: 'Hotel Marlowe', amount: 240, reason: 'Hold a room for Dec 3 to 5' },
+  { agent: 'bill-negotiator-01', payee: 'Gym Membership Co', amount: 45, reason: 'Late fee on membership' }
+];
+const pick = () => ({ ...SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)] });
+
+// Every rule lives here. Agent requests and owner actions both pass through this reducer.
+function reducer(s, act) {
+  const now = Date.now();
+  const toast = (text, kind = 'info') => ({ id: uid(), text, kind, at: now });
+  const patch = (id, f) => ({ ...s, requests: s.requests.map(r => (r.id === id ? { ...r, ...f } : r)) });
+  const spend = (id, amt) => s.agents.map(a => (a.id === id ? { ...a, spent: a.spent + amt } : a));
+  switch (act.type) {
+    case 'submit': {
+      const q = act.req;
+      const ag = s.agents.find(a => a.id === q.agent);
+      let status = 'pending', note = '';
+      if (!ag.active) { status = 'blocked'; note = `${ag.name} is revoked`; }
+      else if (ag.spent + q.amount > ag.cap) { status = 'blocked'; note = 'Over spend cap'; }
+      else if (q.amount <= s.threshold && s.trusted.includes(q.payee)) status = 'auto';
+      const r = { ...q, agentName: ag.name, id: uid(), status, note, at: now, expires: now + FIVE };
+      const text = status === 'auto' ? `${money(q.amount)} to ${q.payee} auto-approved`
+        : status === 'blocked' ? `${money(q.amount)} to ${q.payee} blocked`
+        : `${ag.name} is waiting on you`;
+      return {
+        ...s,
+        requests: [r, ...s.requests],
+        agents: status === 'auto' ? spend(ag.id, q.amount) : s.agents,
+        toasts: [...s.toasts, toast(text, status === 'blocked' ? 'bad' : 'info')]
+      };
+    }
+    case 'approve': {
+      const r = s.requests.find(x => x.id === act.id);
+      if (!r || r.status !== 'pending') return s;
+      const ag = s.agents.find(a => a.id === r.agent);
+      if (!ag.active || ag.spent + r.amount > ag.cap) {
+        return { ...patch(r.id, { status: 'blocked', note: 'Cap reached before approval' }), toasts: [...s.toasts, toast(`Could not pay ${money(r.amount)}: cap reached`, 'bad')] };
+      }
+      return { ...patch(r.id, { status: 'approved', decided: now }), agents: spend(ag.id, r.amount), toasts: [...s.toasts, toast(`Approved ${money(r.amount)} to ${r.payee}`)] };
+    }
+    case 'deny': {
+      const r = s.requests.find(x => x.id === act.id);
+      if (!r || r.status !== 'pending') return s;
+      return { ...patch(r.id, { status: 'denied', decided: now }), toasts: [...s.toasts, toast(`Denied ${money(r.amount)} to ${r.payee}`)] };
+    }
+    case 'expire': {
+      const due = s.requests.filter(r => r.status === 'pending' && r.expires <= now);
+      const toasts = s.toasts.filter(t => now - t.at < 3500);
+      if (!due.length && toasts.length === s.toasts.length) return s;
+      return { ...s, toasts, requests: s.requests.map(r => (due.includes(r) ? { ...r, status: 'expired' } : r)) };
+    }
+    case 'cap':
+      return { ...s, agents: s.agents.map(a => (a.id === act.id ? { ...a, cap: Math.max(0, Number(act.value) || 0) } : a)) };
+    case 'revoke': {
+      const ag = s.agents.find(a => a.id === act.id);
+      const active = !ag.active;
+      return {
+        ...s,
+        agents: s.agents.map(a => (a.id === act.id ? { ...a, active } : a)),
+        requests: active ? s.requests : s.requests.map(r => (r.agent === act.id && r.status === 'pending' ? { ...r, status: 'blocked', note: 'Agent revoked' } : r)),
+        toasts: [...s.toasts, toast(`${ag.name} ${active ? 'restored' : 'revoked'}`, active ? 'info' : 'bad')]
+      };
+    }
+    case 'threshold':
+      return { ...s, threshold: Math.max(0, Number(act.value) || 0) };
+    case 'addPayee': {
+      const v = act.value.trim();
+      return v && !s.trusted.includes(v) ? { ...s, trusted: [...s.trusted, v] } : s;
+    }
+    case 'removePayee':
+      return { ...s, trusted: s.trusted.filter(p => p !== act.value) };
+    default:
+      return s;
+  }
+}
+
+// Seed a few requests so the dashboard is not empty on first load.
+const SEED = {
+  ...[
+    { agent: 'pantry-restocker-02', payee: 'Whole Foods', amount: 36.1, reason: 'Oat milk and eggs running low' },
+    { agent: 'bill-negotiator-01', payee: 'City Power & Light', amount: 84.2, reason: 'Electric bill due Nov 20' },
+    { agent: 'pantry-restocker-02', payee: 'FreshBox Subscriptions', amount: 19.99, reason: 'Monthly box renewal' },
+    { agent: 'trip-planner-03', payee: 'Delta Air Lines', amount: 412, reason: 'Change fee to move the Denver flight' }
+  ].reduce((st, req) => reducer(st, { type: 'submit', req }), INIT),
+  toasts: []
+};
+
+/* Artwork. Drawn in SVG so it renders inside the published page without loading outside images. */
+const Mark = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+    <circle cx="14" cy="14" r="11" fill="none" stroke="#FF7A4D" strokeWidth="3" />
+    <circle cx="14" cy="14" r="4" fill="#E4E9EE" />
+  </svg>
+);
+
+const Avatar = ({ id, name, size = 36 }) => (
+  <svg width={size} height={size} viewBox="0 0 36 36" role="img" aria-label={name}>
+    <circle cx="18" cy="18" r="18" fill={COLORS[id] || '#56616E'} />
+    <text x="18" y="23" textAnchor="middle" fontSize="13" fontWeight="600" fill="#fff" fontFamily="system-ui">
+      {name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+    </text>
+  </svg>
+);
+
+const LoginArt = () => (
+  <svg viewBox="0 0 480 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="An account owner and an AI agent joined by a checkpoint">
+    <rect width="480" height="560" fill="#14213A" />
+    {[60, 140, 220, 300, 380, 460, 540].map(y => <line key={y} x1="0" x2="480" y1={y} y2={y} stroke="#E4E9EE" strokeOpacity=".08" />)}
+    <line x1="240" y1="40" x2="240" y2="520" stroke="#E4E9EE" strokeOpacity=".18" strokeWidth="1.5" />
+    <path d="M120 380 C 200 380, 280 170, 360 170" fill="none" stroke="#FF7A4D" strokeWidth="3" />
+    <rect x="229" y="264" width="22" height="22" transform="rotate(45 240 275)" fill="#FF7A4D" />
+    <circle cx="120" cy="380" r="36" fill="#E4E9EE" />
+    <circle cx="120" cy="368" r="9" fill="#14213A" />
+    <path d="M106 396 Q120 378 134 396 Z" fill="#14213A" />
+    <circle cx="360" cy="170" r="36" fill="#FF7A4D" />
+    <rect x="342" y="158" width="36" height="28" rx="7" fill="#14213A" />
+    <circle cx="352" cy="171" r="3" fill="#FF7A4D" />
+    <circle cx="368" cy="171" r="3" fill="#FF7A4D" />
+    <line x1="360" y1="158" x2="360" y2="150" stroke="#14213A" strokeWidth="2" />
+    <circle cx="360" cy="147" r="2.5" fill="#14213A" />
+    <text x="120" y="446" textAnchor="middle" fill="#E4E9EE" fontSize="16" fontFamily="system-ui">Owner</text>
+    <text x="360" y="118" textAnchor="middle" fill="#E4E9EE" fontSize="16" fontFamily="system-ui">Agent</text>
+    <text x="256" y="306" fill="#97A3B0" fontSize="14" fontFamily="system-ui">Checkpoint</text>
+  </svg>
+);
+
+const FlowArt = () => (
+  <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Payment requests pass a checkpoint and clear as paid">
+    <rect width="400" height="200" fill="#14213A" />
+    {[36, 72, 108, 144, 180].map(y => <line key={y} x1="0" x2="400" y1={y} y2={y} stroke="#E4E9EE" strokeOpacity=".07" />)}
+    {[40, 84, 128].map(y => (
+      <g key={y}>
+        <rect x="28" y={y} width="104" height="28" rx="4" fill="#1C2B47" stroke="#E4E9EE" strokeOpacity=".2" />
+        <line x1="42" y1={y + 14} x2="112" y2={y + 14} stroke="#E4E9EE" strokeOpacity=".4" strokeWidth="3" strokeLinecap="round" />
+      </g>
+    ))}
+    <path d="M132 54 C 180 54, 190 98, 236 98" fill="none" stroke="#FF7A4D" strokeWidth="2" />
+    <path d="M132 98 L 236 98" fill="none" stroke="#FF7A4D" strokeWidth="2" />
+    <path d="M132 142 C 180 142, 190 98, 236 98" fill="none" stroke="#FF7A4D" strokeWidth="2" />
+    <line x1="236" y1="30" x2="236" y2="170" stroke="#E4E9EE" strokeOpacity=".3" strokeWidth="1.5" />
+    <rect x="226" y="88" width="20" height="20" transform="rotate(45 236 98)" fill="#FF7A4D" />
+    <line x1="256" y1="98" x2="296" y2="98" stroke="#E4E9EE" strokeOpacity=".6" strokeWidth="2" />
+    <rect x="296" y="82" width="84" height="32" rx="16" fill="#E4E9EE" />
+    <path d="M312 98 l5 5 l10 -11" fill="none" stroke="#14213A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    <text x="334" y="103" fill="#14213A" fontSize="14" fontWeight="600" fontFamily="system-ui">Paid</text>
+  </svg>
+);
+
+const Kpi = ({ label, value }) => (
+  <div className="card">
+    <div className="small muted">{label}</div>
+    <div className="kv">{value}</div>
+  </div>
+);
+
+function ReqRow({ r }) {
+  return (
+    <div className="row spread">
+      <div style={{ flex: '1 1 240px', minWidth: 0 }}>
+        <strong className="num">{money(r.amount)}</strong> to {r.payee}
+        <div className="small muted">{r.agentName}. {r.reason}{r.note ? `. ${r.note}` : ''}</div>
+      </div>
+      <span className={`tag s-${r.status}`}>{LABEL[r.status]}</span>
+    </div>
+  );
+}
+
+function Login({ onEnter }) {
+  const [tab, setTab] = useState('owner');
+  const [v, setV] = useState({ email: '', password: '', agent: '', token: '' });
+  const [err, setErr] = useState('');
+  const set = k => e => setV({ ...v, [k]: e.target.value });
+  const switchTab = t => { setTab(t); setErr(''); };
+  const fill = () => {
+    setErr('');
+    if (tab === 'owner') setV({ ...v, email: DEMO.owner.email, password: DEMO.owner.password });
+    else setV({ ...v, agent: 'bill-negotiator-01', token: DEMO.tokens['bill-negotiator-01'] });
+  };
+  const signIn = () => {
+    if (tab === 'owner') {
+      if (v.email === DEMO.owner.email && v.password === DEMO.owner.password) return onEnter({ role: 'owner' });
+      return setErr('Email or password is incorrect. Use the demo credentials below.');
+    }
+    if (DEMO.tokens[v.agent] && DEMO.tokens[v.agent] === v.token) return onEnter({ role: 'agent', agentId: v.agent });
+    return setErr('Agent ID or token does not match. Use the agent demo credentials below.');
+  };
+  return (
+    <div className="login">
+      <div className="art"><LoginArt /></div>
+      <div className="panel">
+        <div className="row"><Mark /><strong>Leash</strong></div>
+        <h1 style={{ marginTop: 28 }}>Sign in</h1>
+        <p className="muted">Owners approve payments. Agents request them. Neither can skip the rules.</p>
+        <div className="tabs">
+          <button className={tab === 'owner' ? 'on' : ''} onClick={() => switchTab('owner')}>Account owner</button>
+          <button className={tab === 'agent' ? 'on' : ''} onClick={() => switchTab('agent')}>AI agent</button>
+        </div>
+        {tab === 'owner' ? (
+          <>
+            <div className="field"><label>Email</label><input value={v.email} onChange={set('email')} autoComplete="username" /></div>
+            <div className="field"><label>Password</label><input type="password" value={v.password} onChange={set('password')} autoComplete="current-password" /></div>
+          </>
+        ) : (
+          <>
+            <div className="field"><label>Agent ID</label><input value={v.agent} onChange={set('agent')} /></div>
+            <div className="field"><label>Agent token</label><input value={v.token} onChange={set('token')} /></div>
+          </>
+        )}
+        {err && <p className="err">{err}</p>}
+        <div className="row">
+          <button className="solid" onClick={signIn}>Sign in</button>
+          <button onClick={fill}>Fill demo credentials</button>
+        </div>
+        <div className="card small" style={{ marginTop: 22 }}>
+          <p style={{ margin: '0 0 8px' }}><strong>Owner demo</strong><br />alex@leash.demo, password leash-demo</p>
+          <p style={{ margin: 0 }}><strong>Agent demo</strong><br />bill-negotiator-01, token lsh_demo_bn01</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Overview({ s, dispatch, go }) {
+  const count = st => s.requests.filter(r => r.status === st).length;
+  const spent = s.agents.reduce((n, a) => n + a.spent, 0);
+  return (
+    <>
+      <div className="banner">
+        <div className="copy">
+          <h1 style={{ fontSize: 34, lineHeight: 1.1, color: '#E4E9EE' }}>Your agents spend. You say when.</h1>
+          <p style={{ color: '#97A3B0', margin: '10px 0 0' }}>Every payment passes your rules first. Anything outside them waits for you.</p>
+        </div>
+        <div className="art"><FlowArt /></div>
+      </div>
+      <div className="grid kpis" style={{ marginTop: 18 }}>
+        <Kpi label="Spent by agents" value={money(spent)} />
+        <Kpi label="Waiting for you" value={count('pending')} />
+        <Kpi label="Auto-approved" value={count('auto')} />
+        <Kpi label="Blocked by rules" value={count('blocked')} />
+      </div>
+      <h2 style={{ margin: '28px 0 10px' }}>Recent activity</h2>
+      <div className="card list">
+        {s.requests.length ? s.requests.slice(0, 5).map(r => <div key={r.id}><ReqRow r={r} /></div>) : <p className="muted" style={{ margin: 0 }}>No requests yet.</p>}
+      </div>
+      <div className="row" style={{ marginTop: 14 }}>
+        <button className="solid" onClick={() => dispatch({ type: 'submit', req: pick() })}>Simulate an agent request</button>
+        <button onClick={() => go('approvals')}>Review approvals</button>
+      </div>
+    </>
+  );
+}
+
+function Approvals({ s, dispatch, now }) {
+  const list = s.requests.filter(r => r.status === 'pending');
+  if (!list.length) {
+    return (
+      <>
+        <h1>Approvals</h1>
+        <div className="card" style={{ marginTop: 18 }}><p className="muted" style={{ margin: 0 }}>Nothing needs you. Agents are inside their rules.</p></div>
+      </>
+    );
+  }
+  return (
+    <>
+      <h1>Approvals</h1>
+      <p className="muted">Approve only payments you expected. Pending requests expire after five minutes.</p>
+      <div className="grid" style={{ marginTop: 14 }}>
+        {list.map(r => {
+          const left = Math.max(0, Math.ceil((r.expires - now) / 1000));
+          const trusted = s.trusted.includes(r.payee);
+          return (
+            <div className="card pendingCard" key={r.id}>
+              <div className="row spread">
+                <div className="row"><Avatar id={r.agent} name={r.agentName} size={28} /><span className="small muted">{r.agentName} wants to pay</span></div>
+                <span className="small num">{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')} left</span>
+              </div>
+              <div className="amt" style={{ marginTop: 14 }}>{money(r.amount)}</div>
+              <div style={{ fontWeight: 600, marginTop: 4 }}>{r.payee}</div>
+              <p className="muted" style={{ margin: '6px 0 0' }}>{r.reason}</p>
+              <p className="small muted" style={{ margin: '6px 0 0' }}>{trusted ? 'Trusted payee' : 'New payee, so it always asks you'}, ref {r.id}.</p>
+              <div className="row" style={{ marginTop: 14 }}>
+                <button className="solid" onClick={() => dispatch({ type: 'approve', id: r.id })}>Approve payment</button>
+                <button onClick={() => dispatch({ type: 'deny', id: r.id })}>Deny</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function Agents({ s, dispatch }) {
+  const [confirm, setConfirm] = useState(null);
+  const [draft, setDraft] = useState({});
+  return (
+    <>
+      <h1>Agents</h1>
+      <p className="muted">Each agent has its own spend cap. Revoking one stops it at once and cancels its waiting requests.</p>
+      <div className="grid" style={{ marginTop: 14 }}>
+        {s.agents.map(a => {
+          const pct = a.cap ? Math.min(100, (a.spent / a.cap) * 100) : 0;
+          return (
+            <div className="card" key={a.id}>
+              <div className="row spread">
+                <div className="row">
+                  <Avatar id={a.id} name={a.name} size={40} />
+                  <div><strong>{a.name}</strong><div className="small muted">{a.purpose}</div></div>
+                </div>
+                <span className={`tag ${a.active ? 's-approved' : 's-blocked'}`}>{a.active ? 'Active' : 'Revoked'}</span>
+              </div>
+              <div className="bar"><i style={{ width: pct + '%' }} /></div>
+              <div className="small muted" style={{ marginTop: 6 }}>{money(a.spent)} spent of {money(a.cap)} cap</div>
+              <div className="row" style={{ marginTop: 14 }}>
+                <input type="number" min="0" step="10" style={{ maxWidth: 160 }}
+                  value={draft[a.id] ?? a.cap}
+                  onChange={e => setDraft({ ...draft, [a.id]: e.target.value })}
+                  aria-label={`Spend cap for ${a.name}`} />
+                <button onClick={() => { if (draft[a.id] !== undefined) dispatch({ type: 'cap', id: a.id, value: draft[a.id] }); }}>Save cap</button>
+                {confirm === a.id ? (
+                  <>
+                    <button className="danger" onClick={() => { dispatch({ type: 'revoke', id: a.id }); setConfirm(null); }}>{a.active ? 'Confirm revoke' : 'Confirm restore'}</button>
+                    <button onClick={() => setConfirm(null)}>Cancel</button>
+                  </>
+                ) : (
+                  <button className={a.active ? 'danger' : ''} onClick={() => setConfirm(a.id)}>{a.active ? 'Revoke access' : 'Restore access'}</button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function Rules({ s, dispatch }) {
+  const [np, setNp] = useState('');
+  const [th, setTh] = useState(String(s.threshold));
+  useEffect(() => setTh(String(s.threshold)), [s.threshold]);
+  return (
+    <>
+      <h1>Rules</h1>
+      <p className="muted">These rules run before any agent payment reaches you.</p>
+      <div className="card" style={{ marginTop: 14 }}>
+        <h3 style={{ fontSize: 18 }}>Auto-approval limit</h3>
+        <p className="small muted">Payments up to this amount go through without you, but only to trusted payees.</p>
+        <div className="row">
+          <span>$</span>
+          <input type="number" min="0" step="5" style={{ maxWidth: 160 }} value={th} onChange={e => setTh(e.target.value)} aria-label="Auto-approval limit" />
+          <button onClick={() => dispatch({ type: 'threshold', value: th })}>Save limit</button>
+        </div>
+      </div>
+      <div className="card" style={{ marginTop: 14 }}>
+        <h3 style={{ fontSize: 18 }}>Trusted payees</h3>
+        <p className="small muted">New payees always ask you first, whatever the amount.</p>
+        <div className="list" style={{ marginTop: 8 }}>
+          {s.trusted.map(p => (
+            <div key={p} className="row spread">
+              <span>{p}</span>
+              <button onClick={() => dispatch({ type: 'removePayee', value: p })}>Remove</button>
+            </div>
+          ))}
+        </div>
+        <div className="row" style={{ marginTop: 12 }}>
+          <input placeholder="Add a payee name" value={np} onChange={e => setNp(e.target.value)} style={{ maxWidth: 280 }} aria-label="New trusted payee" />
+          <button className="solid" onClick={() => { dispatch({ type: 'addPayee', value: np }); setNp(''); }}>Add payee</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Activity({ s }) {
+  const [f, setF] = useState('all');
+  const [q, setQ] = useState('');
+  const rows = s.requests.filter(r =>
+    (f === 'all' || r.status === f) &&
+    `${r.payee} ${r.agentName} ${r.reason}`.toLowerCase().includes(q.toLowerCase()));
+  const filters = ['all', 'pending', 'auto', 'approved', 'denied', 'blocked', 'expired'];
+  return (
+    <>
+      <h1>Activity</h1>
+      <p className="muted">Every request and decision, with time stamps.</p>
+      <div className="row" style={{ margin: '14px 0' }}>
+        <input placeholder="Search payee, agent, or reason" value={q} onChange={e => setQ(e.target.value)} style={{ maxWidth: 320 }} aria-label="Search activity" />
+      </div>
+      <div className="row" style={{ marginBottom: 14 }}>
+        {filters.map(x => <button key={x} className={f === x ? 'solid' : ''} onClick={() => setF(x)}>{x === 'all' ? 'All' : LABEL[x]}</button>)}
+      </div>
+      <div className="card list">
+        {rows.length ? rows.map(r => (
+          <div key={r.id}>
+            <ReqRow r={r} />
+            <div className="small muted num" style={{ marginTop: 4 }}>{when(r.at)}, ref {r.id}</div>
+          </div>
+        )) : <p className="muted" style={{ margin: 0 }}>No matching activity.</p>}
+      </div>
+    </>
+  );
+}
+
+function OwnerApp({ s, dispatch, now, onExit }) {
+  const [page, setPage] = useState('overview');
+  const waiting = s.requests.filter(r => r.status === 'pending').length;
+  const nav = [['overview', 'Overview'], ['approvals', waiting ? `Approvals (${waiting})` : 'Approvals'], ['agents', 'Agents'], ['rules', 'Rules'], ['activity', 'Activity']];
+  return (
+    <div className="shell">
+      <aside className="side">
+        <div className="row brand" style={{ color: '#E4E9EE', marginBottom: 18 }}>
+          <Mark /><strong style={{ fontFamily: 'Georgia,serif', fontSize: 20 }}>Leash</strong>
+        </div>
+        {nav.map(([k, l]) => <button key={k} className={page === k ? 'on' : ''} onClick={() => setPage(k)}>{l}</button>)}
+        <div style={{ marginTop: 'auto', paddingTop: 20 }}>
+          <button onClick={onExit}>Sign out</button>
+        </div>
+      </aside>
+      <main className="main">
+        {page === 'overview' && <Overview s={s} dispatch={dispatch} go={setPage} />}
+        {page === 'approvals' && <Approvals s={s} dispatch={dispatch} now={now} />}
+        {page === 'agents' && <Agents s={s} dispatch={dispatch} />}
+        {page === 'rules' && <Rules s={s} dispatch={dispatch} />}
+        {page === 'activity' && <Activity s={s} />}
+      </main>
+    </div>
+  );
+}
+
+function AgentApp({ s, dispatch, agentId, onExit }) {
+  const ag = s.agents.find(a => a.id === agentId);
+  const mine = s.requests.filter(r => r.agent === agentId);
+  const [v, setV] = useState({ payee: 'City Power & Light', amount: '', reason: '' });
+  const [err, setErr] = useState('');
+  const send = () => {
+    const amount = Number(v.amount);
+    if (!v.payee.trim()) return setErr('Choose a payee.');
+    if (!(amount > 0)) return setErr('Enter an amount above zero.');
+    if (!v.reason.trim()) return setErr('Give the owner a reason for this payment.');
+    setErr('');
+    dispatch({ type: 'submit', req: { agent: agentId, payee: v.payee.trim(), amount, reason: v.reason.trim() } });
+    setV({ ...v, amount: '', reason: '' });
+  };
+  return (
+    <div className="shell">
+      <aside className="side">
+        <div className="row brand" style={{ color: '#E4E9EE', marginBottom: 18 }}>
+          <Mark /><strong style={{ fontFamily: 'Georgia,serif', fontSize: 20 }}>Leash</strong>
+        </div>
+        <div>Agent session</div>
+        <div className="small" style={{ marginBottom: 14 }}>{ag.name}</div>
+        <div style={{ marginTop: 'auto', paddingTop: 20 }}><button onClick={onExit}>Sign out</button></div>
+      </aside>
+      <main className="main">
+        <div className="banner">
+          <div className="copy">
+            <h1 style={{ fontSize: 28, color: '#E4E9EE' }}>{ag.name}</h1>
+            <p style={{ color: '#97A3B0', margin: '8px 0 0' }}>{ag.purpose}. You can request payments. Only your owner can approve them.</p>
+          </div>
+          <div className="art"><FlowArt /></div>
+        </div>
+        <div className="grid kpis" style={{ marginTop: 18 }}>
+          <Kpi label="Spend cap" value={money(ag.cap)} />
+          <Kpi label="Spent" value={money(ag.spent)} />
+          <Kpi label="Left under cap" value={money(Math.max(0, ag.cap - ag.spent))} />
+          <Kpi label="Access" value={ag.active ? 'Active' : 'Revoked'} />
+        </div>
+        {!ag.active && <p className="err" style={{ marginTop: 14 }}>Your owner revoked this agent. Requests are blocked until access is restored.</p>}
+        <h2 style={{ margin: '28px 0 10px' }}>Request a payment</h2>
+        <div className="card">
+          <div className="field">
+            <label>Payee</label>
+            <input list="payee-list" value={v.payee} onChange={e => setV({ ...v, payee: e.target.value })} />
+            <datalist id="payee-list">{s.trusted.map(p => <option key={p} value={p} />)}</datalist>
+          </div>
+          <div className="field"><label>Amount</label><input type="number" min="0" step="0.01" value={v.amount} onChange={e => setV({ ...v, amount: e.target.value })} /></div>
+          <div className="field"><label>Reason for the owner</label><input value={v.reason} placeholder="Electric bill due Nov 20" onChange={e => setV({ ...v, reason: e.target.value })} /></div>
+          {err && <p className="err">{err}</p>}
+          <button className="solid" disabled={!ag.active} onClick={send}>Send request</button>
+          <p className="small muted" style={{ marginBottom: 0 }}>Payments up to {money(s.threshold)} to trusted payees go through automatically. Everything else waits for your owner.</p>
+        </div>
+        <h2 style={{ margin: '28px 0 10px' }}>My requests</h2>
+        <div className="card list">
+          {mine.length ? mine.map(r => <div key={r.id}><ReqRow r={r} /></div>) : <p className="muted" style={{ margin: 0 }}>No requests yet.</p>}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  const [s, dispatch] = useReducer(reducer, SEED);
+  const [session, setSession] = useState(null);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => { setNow(Date.now()); dispatch({ type: 'expire' }); }, 1000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <>
+      {!session && <Login onEnter={setSession} />}
+      {session && session.role === 'owner' && <OwnerApp s={s} dispatch={dispatch} now={now} onExit={() => setSession(null)} />}
+      {session && session.role === 'agent' && <AgentApp s={s} dispatch={dispatch} agentId={session.agentId} onExit={() => setSession(null)} />}
+      <div className="toasts" aria-live="polite">
+        {s.toasts.map(t => <div key={t.id} className={`toast ${t.kind === 'bad' ? 'bad' : ''}`}>{t.text}</div>)}
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
